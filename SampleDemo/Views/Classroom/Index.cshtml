@@ -1,0 +1,47 @@
+﻿@{
+    ViewData["Title"] = "Classroom";
+}
+
+<section class="page-heading">
+    <h1>Classroom</h1>
+    <hr />
+</section>
+
+@(Html.Kendo().Grid<SampleDemo.Entities.Classroom>()
+                               .Name("grdClassrooms")
+                               .Selectable(s => s.Mode(GridSelectionMode.Single))
+                               .Filterable(ftb => ftb.Mode(GridFilterMode.Row))
+                               .Pageable(pageable => pageable
+                               .ButtonCount(5))
+                               .Columns(columns =>
+                               {
+                                   columns.Bound(p => p.ClassroomId).Hidden();
+                                   columns.Bound(p => p.Name).Filterable(false);
+                                   columns.Command(
+                                   command =>
+                                   {
+                                       command.Custom("Add Student").Click("editClassRoom").IconClass("far fa-add");
+                                   }
+                               ).Width(170).HtmlAttributes(new { style = "text-align: center;" });
+                               })
+                               .Pageable()
+                               .Sortable()
+                               .Scrollable()
+                               .AutoBind(true)
+                               .DataSource(dataSource => dataSource
+                               .Ajax()
+                               .PageSize(20)
+                               .Read(read => read.Action("Classrooms_Read", "Classroom"))
+                               .Model(model => { model.Id(i => i.ClassroomId); })
+                                ))
+
+<script type="text/javascript">                            
+function editClassRoom(e)
+{
+   var dataItem = $("#grdClassrooms").data('kendoGrid').dataItem($(e.currentTarget).closest("tr"));
+   if (dataItem && dataItem != null)
+   {
+      location.href = "@Url.Action("ManageClassroom", "Classroom")" + "?ClassroomId=" + dataItem.ClassroomId;
+   }
+}                            
+</script>

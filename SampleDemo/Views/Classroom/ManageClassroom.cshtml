@@ -1,0 +1,92 @@
+﻿@using Kendo.Mvc.UI
+@model SampleDemo.Models.AddClassroomStudentModel
+
+<script src="~/lib/jquery-validation/dist/jquery.form.js"></script>
+<script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+<script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+
+@{
+    ViewData["Title"] = "Manage Classroom";
+}
+
+<section class="page-heading">
+    <h1>Classroom: @Model.ClassRoomName</h1>
+    <hr />
+</section>
+
+<form asp-action="AddStudent" id="frmAddStudent">
+    @Html.HiddenFor(m => m.ClassroomId)
+    <div class="row">
+        <div class="col-md-10">
+            <input asp-for="StudentName" class="form-control" placeholder="Enter student name" id = "txtSudentName" required/>
+            <span asp-validation-for="StudentName" class="text-danger"></span>
+        </div>
+        <div class="col-md-1">
+            <input type="button" value="Add Student" onclick="SaveAddStudent();" id="btnAddStudent" class="btn btn-primary" style="border-color: #bfc6d0;color: #212529;background-color: #c7cdd5;" />
+        </div>
+    </div>
+</form>
+ <hr />
+
+@(Html.Kendo().Grid<SampleDemo.Entities.Student>()
+                               .Name("grdStudents")
+                               .Selectable(s => s.Mode(GridSelectionMode.Single))
+                               .Filterable(ftb => ftb.Mode(GridFilterMode.Row))
+                               .Pageable(pageable => pageable
+                               .ButtonCount(5))
+                               .Columns(columns =>
+                               {
+                                   columns.Bound(p => p.StudentId).Hidden();
+                                   columns.Bound(p => p.Name).Filterable(false);
+                               })
+                               .Pageable()
+                               .Sortable()
+                               .Scrollable()
+                               .Filterable()
+                               .AutoBind(true)
+                               .DataSource(dataSource => dataSource
+                               .Ajax()
+                               .PageSize(20)
+                               .Read(read => read.Action("ClassroomStudents_Read", "Classroom", new { ClassroomId = @Model.ClassroomId }))
+                               .Model(model => { model.Id(i => i.StudentId); })
+                                ))
+
+<script type="text/javascript">
+
+function validateForm()
+{
+    var form = $('#frmAddStudent');
+    var validator = form.kendoValidator().data('kendoValidator');
+    var resultValidate = validator.validate();
+    return resultValidate;
+}
+
+function SaveAddStudent()
+{
+    if (validateForm())
+    {
+        $("#btnAddStudent").prop('disabled', true);
+        var options =
+        {
+            success: onSuccessSave,  // post-submit callback
+            data: $('#frmAddStudent').serialize()
+        };
+        $('#frmAddStudent').ajaxSubmit(options);
+    }
+}
+    
+function onSuccessSave(responseText, statusText, xhr, $form)
+{
+    $("#btnAddStudent").prop('disabled', false);
+    if (responseText.success)
+    {
+        $('#frmAddStudent')[0].reset();
+        $("#grdStudents").data("kendoGrid").dataSource.read();
+        alert(responseText.message);
+    }
+    else
+    {
+         alert(responseText.message);
+    }
+}
+</script>
